@@ -1,0 +1,1572 @@
+---
+openapi: 3.0.0
+info:
+  title: CurrencyFair API - Affiliate access
+  version: 2.0.0
+  contact:
+    name: Customer Support
+    email: support@currencyfair.com
+  x-logo:
+    url: https://assets.currencyfair.com/img/logo-currencyfair.svg
+  description: |
+    # Introduction
+
+    The CurrencyFair API allows limited read-only access for partners logging in using a server-to-server auth token.
+    
+    It is designed for fetching rates, listing currencies, and other read operations useful to our partners, without need to authenticate
+    as an active customer.
+
+    The full read/write access is documented separately, and requires a fully activated customer account in our system.
+
+
+    The production API server is https://api.currencyfair.com
+
+    The following headers can be attached to HTTPS calls to our API:
+      - `Authorization: Bearer <api_token>` - must be set to authenticate the call. Read more in the [Authentication](#section/Authentication) section.
+      - `Content-Type: application/json` - must be set on POST/PUT/PATCH calls when a JSON body payload is sent.
+      - `Accept-Language: <two_letter_language_code>` - to set the language. Defaults to `en` if not provided. Currently supported languages: `en`, `fr`, `de`.
+
+    <SecurityDefinitions />
+
+    **The Auth Token must be stored in secure location, and never displayed to the public**.
+
+    Please read more about authentication process in the [authentication endpoint](#tag/Authentication) description.
+
+    # Error Responses
+
+    CurrencyFair follows the error response format proposed in [RFC 7807](https://tools.ietf.org/html/rfc7807) also known as Problem Details for HTTP APIs.
+
+    ## Basic error message
+
+    The base schema for all error responses is as follows:
+    <SchemaDefinition schemaRef="#/components/schemas/ApiNotFoundError" exampleRef="#/components/examples/NotFound" />
+
+    ## Error message with failure messages
+
+    If the endpoint was unable to perform the requested operation, it may return a HTTP 4xx error response with `failure_messages` property.
+
+    The structure of the `failure_messages` is as follows:
+    ```json
+    {
+      "<error_code>": "<error_message>",
+      ...
+    }
+    ```
+
+    <SchemaDefinition schemaRef="#/components/schemas/ApiErrorWithFailureMessages" exampleRef="#/components/examples/FailureMessages" />
+
+    # HAL links
+
+    Our API uses [HAL](https://en.wikipedia.org/wiki/Hypertext_Application_Language) links.
+    These added properties are not covered in this documentation as they are auto-generated.
+x-amazon-apigateway-api-key-source: HEADER
+x-amazon-apigateway-request-validators:
+  params-only:
+    validateRequestBody: false
+    validateRequestParameters: true # Specifies whether to validate the required request parameters
+x-tagGroups:
+  - name: Authenticate
+    tags:
+      - Authentication
+  - name: Endpoints
+    tags:
+      - Quote
+      - Countries & Currencies
+tags:
+  - name: Authentication
+  - name: Countries & Currencies
+    description: |
+      These endpoints provide information related to countries and currencies, and what level of support CurrencyFair
+      provides for each. For example, you can query these endpoints to determine a default currency for a country, or to see
+      if CurrencyFair allows registration for a particular country.
+  - name: Quote
+    description: |
+      Quote endpoint is used to retrieve quotes and bank rate comparisons.
+paths:
+  "/oauth":
+    post:
+      summary: Authenticate
+      description: |
+        Successful authentication will produce an `OauthResponse` object which contains a token.
+        The token must be then put into each next API call, into `Authorization` header, in the following way:
+        ```
+        Bearer {token}
+        ```
+        Example:
+        ```
+        Authorization: Bearer 3d22ddea15b15e65909463ed821dc6c5
+        ```
+      tags:
+        - Authentication
+      operationId: oauth
+      parameters:
+        - $ref: "#/components/parameters/ContentTypeHeaderParam"
+        - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
+      requestBody:
+        description: The form values for authentication.
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  description: Type of authentication. Use `auth_token`.
+                  type: string
+                  default: auth_token
+                auth_token:
+                  description: The long-lived secret token
+                  type: string
+                client_id:
+                  description: Type of client. Use `xsapi`.
+                  type: string
+                  default: xsapi
+              required:
+                - grant_type
+                - auth_token
+                - client_id
+            examples:
+              xsapi:
+                $ref: "#/components/examples/OauthRequest"
+      responses:
+        '200':
+          description: Oauth response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OauthResponse"
+              examples:
+                success:
+                  summary: Successful authorization
+                  value:
+                    $ref: "resources/examples/oauth/oAuthResponse.json"
+        '400':
+          $ref: "#/components/responses/Unauthorized"
+        '429':
+          $ref: "#/components/responses/TooManyRequests"
+      x-amazon-apigateway-integration:
+        x-amazon-apigateway-auth: NONE
+        httpMethod: "POST"
+        uri: "https://${stageVariables.url}/oauth"
+        passthroughBehavior: "when_no_match"
+        timeoutInMillis: 29000
+        type: "http"
+        requestParameters:
+          integration.request.header.Content-Type: "method.request.header.Content-Type"
+          integration.request.header.Accept-Language: "method.request.header.Accept-Language"
+          integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
+          integration.request.header.User-Agent: "context.identity.userAgent"
+        responses:
+          200:
+            statusCode: 200
+          400:
+            statusCode: 400
+          401:
+            statusCode: 401
+          429:
+            statusCode: 429
+  "/countries":
+    get:
+      summary: Retrieve a list of Countries
+      description: |
+        Retrieves the full list of countries that CurrencyFair supports. Support
+        for a country does not imply registration capabilities, or deposit/transfer
+        capabilities.
+      operationId: getCountries
+      security:
+        - Bearer: []
+      parameters:
+        - $ref: "#/components/parameters/AuthorisationHeaderParam"
+        - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
+        - $ref: "#/components/parameters/CurrencyCodeOptionalQueryParam"
+        - name: account
+          in: query
+          description: Use value `1` to get the list of Countries filtered by those which allow the setting up of a Bank Account.
+          required: false
+          schema:
+            type: integer
+            enum: [0, 1]
+            default: 0
+      tags:
+        - Countries & Currencies
+      responses:
+        '200':
+          description: Countries collection
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/CountriesCollection"
+              examples:
+                collection:
+                  summary: Countries collection
+                  value:
+                    $ref: "resources/examples/countries/countriesCollection.json"
+        '401':
+          description: Authorisation error.
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+              description: Header name will be remapped to `x-amzn-Remapped-WWW-Authenticate`
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '422':
+          $ref: "#/components/responses/UnprocessableEntity"
+        '429':
+          $ref: "#/components/responses/TooManyRequests"
+      x-amazon-apigateway-request-validator: params-only
+      x-amazon-apigateway-integration:
+        x-amazon-apigateway-auth: NONE
+        httpMethod: "GET"
+        uri: "https://${stageVariables.url}/countries"
+        passthroughBehavior: "when_no_match"
+        timeoutInMillis: 29000
+        type: "http"
+        requestParameters:
+          integration.request.header.Authorization: "method.request.header.Authorization"
+          integration.request.header.Accept-Language: "method.request.header.Accept-Language"
+          integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
+          integration.request.header.User-Agent: "context.identity.userAgent"
+          integration.request.querystring.account: "method.request.querystring.account"
+          integration.request.querystring.currencyCode: "method.request.querystring.currencyCode"
+        responses:
+          200:
+            statusCode: 200
+          401:
+            statusCode: 401
+            responseParameters:
+              method.response.header.WWW-Authenticate: "integration.response.header.WWW-Authenticate"
+          403:
+            statusCode: 403
+          422:
+            statusCode: 422
+          429:
+            statusCode: 429
+  "/countries/{id}":
+    get:
+      summary: Retrieve a Country
+      description: Retrieves a Country.
+      operationId: getCountry
+      security:
+        -  Bearer: []
+      parameters:
+        - $ref: "#/components/parameters/AuthorisationHeaderParam"
+        - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
+        - name: id
+          in: path
+          description: Country ID
+          required: true
+          schema:
+            $ref: "#/components/schemas/IdParam"
+      tags:
+        - Countries & Currencies
+      responses:
+        '200':
+          description: Country object
+          headers:
+            Vary:
+              schema:
+                type: string
+            Cache-Control:
+              schema:
+                type: string
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/CountriesEntity"
+              examples:
+                entity:
+                  summary: Country entity
+                  value:
+                    $ref: "resources/examples/countries/countriesEntity.json"
+        '401':
+          description: Authorisation error.
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+              description: Header name will be remapped to `x-amzn-Remapped-WWW-Authenticate`
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '429':
+          $ref: "#/components/responses/TooManyRequests"
+      x-amazon-apigateway-integration:
+        x-amazon-apigateway-auth: NONE
+        httpMethod: "GET"
+        uri: "https://${stageVariables.url}/countries/{id}"
+        passthroughBehavior: "when_no_match"
+        timeoutInMillis: 29000
+        type: "http"
+        requestParameters:
+          integration.request.header.Authorization: "method.request.header.Authorization"
+          integration.request.header.Accept-Language: "method.request.header.Accept-Language"
+          integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
+          integration.request.header.User-Agent: "context.identity.userAgent"
+          integration.request.path.id: "method.request.path.id"
+        responses:
+          200:
+            statusCode: 200
+            responseParameters:
+              method.response.header.Vary: "integration.response.header.Vary"
+              method.response.header.Cache-Control: "integration.response.header.Cache-Control"
+          401:
+            statusCode: 401
+            responseParameters:
+              method.response.header.WWW-Authenticate: "integration.response.header.WWW-Authenticate"
+          403:
+            statusCode: 403
+          404:
+            statusCode: 404
+          429:
+            statusCode: 429
+  "/currencies":
+    get:
+      summary: Retrieve a list of Currencies
+      description: Retrieves a collection of Currencies.
+      operationId: getCurrencies
+      security:
+        -  Bearer: []
+      parameters:
+        - $ref: "#/components/parameters/AuthorisationHeaderParam"
+        - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
+        - name: include_disabled
+          in: query
+          description: Use value `1` to retrieve a list of all currencies, including those which are disabled.
+          required: false
+          schema:
+            type: integer
+        - name: cf_client_account
+          in: query
+          description: Use value `1` to retrieve a list of currencies for which a CurrencyFair Bank Account
+            exists and that we accept deposits in.
+          required: false
+          schema:
+            type: integer
+        - name: account
+          in: query
+          description: Use value `1` to retrieve a list of currencies that can be used with a user Bank Account.
+          required: false
+          schema:
+            type: integer
+        - name: regional_entity
+          in: query
+          description: Filter currencies by regional entity (e.g. `Singapore`).
+          required: false
+          schema:
+            type: string
+            example: Singapore
+      tags:
+        - Countries & Currencies
+      responses:
+        '200':
+          description: Collection of Currencies
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/CurrenciesCollection"
+              examples:
+                entity:
+                  summary: Currencies collection
+                  value:
+                    $ref: "resources/examples/currencies/currenciesCollection.json"
+        '401':
+          description: Authorisation error.
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+              description: Header name will be remapped to `x-amzn-Remapped-WWW-Authenticate`
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '422':
+          $ref: "#/components/responses/UnprocessableEntity"
+        '429':
+          $ref: "#/components/responses/TooManyRequests"
+      x-amazon-apigateway-request-validator: params-only
+      x-amazon-apigateway-integration:
+        x-amazon-apigateway-auth: NONE
+        httpMethod: "GET"
+        uri: "https://${stageVariables.url}/currencies"
+        passthroughBehavior: "when_no_match"
+        timeoutInMillis: 29000
+        type: "http"
+        requestParameters:
+          integration.request.header.Authorization: "method.request.header.Authorization"
+          integration.request.header.Accept-Language: "method.request.header.Accept-Language"
+          integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
+          integration.request.header.User-Agent: "context.identity.userAgent"
+          integration.request.querystring.include_disabled: "method.request.querystring.include_disabled"
+          integration.request.querystring.cf_client_account: "method.request.querystring.cf_client_account"
+          integration.request.querystring.account: "method.request.querystring.account"
+          integration.request.querystring.regional_entity: "method.request.querystring.regional_entity"
+        responses:
+          200:
+            statusCode: 200
+          401:
+            statusCode: 401
+            responseParameters:
+              method.response.header.WWW-Authenticate: "integration.response.header.WWW-Authenticate"
+          403:
+            statusCode: 403
+          422:
+            statusCode: 422
+          429:
+            statusCode: 429
+  "/currencies/{currencyCode}":
+    get:
+      summary: Retrieve a Currency
+      description: Retrieves a Currency.
+      operationId: getCurrencyByCurrencyCode
+      security:
+        -  Bearer: []
+      parameters:
+        - $ref: "#/components/parameters/AuthorisationHeaderParam"
+        - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
+        - $ref: "#/components/parameters/CurrencyCodeParam"
+      tags:
+        - Countries & Currencies
+      responses:
+        '200':
+          description: Currency object
+          content:
+            application/hal+json:
+              schema:
+                $ref: "#/components/schemas/CurrenciesEntity"
+              examples:
+                entity:
+                  summary: Currency entity
+                  value:
+                    $ref: "resources/examples/currencies/currenciesEntity.json"
+        '401':
+          description: Authorisation error.
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+              description: Header name will be remapped to `x-amzn-Remapped-WWW-Authenticate`
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '429':
+          $ref: "#/components/responses/TooManyRequests"
+      x-amazon-apigateway-integration:
+        x-amazon-apigateway-auth: NONE
+        httpMethod: "GET"
+        uri: "https://${stageVariables.url}/currencies/{currencyCode}"
+        passthroughBehavior: "when_no_match"
+        timeoutInMillis: 29000
+        type: "http"
+        requestParameters:
+          integration.request.header.Authorization: "method.request.header.Authorization"
+          integration.request.header.Accept-Language: "method.request.header.Accept-Language"
+          integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
+          integration.request.header.User-Agent: "context.identity.userAgent"
+          integration.request.path.currencyCode: "method.request.path.currencyCode"
+        responses:
+          200:
+            statusCode: 200
+          401:
+            statusCode: 401
+            responseParameters:
+              method.response.header.WWW-Authenticate: "integration.response.header.WWW-Authenticate"
+          403:
+            statusCode: 403
+          404:
+            statusCode: 404
+          429:
+            statusCode: 429
+  "/comparisonQuotes":
+    post:
+      summary: Retrieve a Comparison Quote
+      operationId: returnComparisonQuote
+      description: |
+        Retrieves a comparison of rates between CurrencyFair and a traditional bank for a `BUY` or `SELL` transfer between two provided
+        currencies.
+
+        An example usage of this endpoint would be displaying a table comparing CurrencyFair's rates with a traditional bank's rates.
+      security:
+        -  Bearer: []
+      parameters:
+        - $ref: "#/components/parameters/AuthorisationHeaderParam"
+        - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
+      tags:
+        - Quote
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ComparisonQuotesBodyPayload"
+        description: If no parameters are provided the call will return a `SELL` quote
+          for €10,000 from `EUR` to `GBP`
+      responses:
+        '201':
+          description: ComparisonQuotes object
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComparisonQuotesEntity"
+        '401':
+          description: Authorisation error.
+          headers:
+            WWW-Authenticate:
+              schema:
+                type: string
+              description: Header name will be remapped to `x-amzn-Remapped-WWW-Authenticate`
+        '403':
+          $ref: "#/components/responses/Forbidden"
+        '404':
+          $ref: "#/components/responses/NotFound"
+        '422':
+          $ref: "#/components/responses/UnprocessableEntity"
+        '429':
+          $ref: "#/components/responses/TooManyRequests"
+      x-amazon-apigateway-integration:
+        x-amazon-apigateway-auth: NONE
+        httpMethod: "POST"
+        uri: "https://${stageVariables.url}/comparisonQuotes"
+        passthroughBehavior: "when_no_match"
+        timeoutInMillis: 29000
+        type: "http"
+        requestParameters:
+          integration.request.header.Authorization: "method.request.header.Authorization"
+          integration.request.header.Accept-Language: "method.request.header.Accept-Language"
+          integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
+          integration.request.header.User-Agent: "context.identity.userAgent"
+        responses:
+          201:
+            statusCode: 201
+          401:
+            statusCode: 401
+            responseParameters:
+              method.response.header.WWW-Authenticate: "integration.response.header.WWW-Authenticate"
+          403:
+            statusCode: 403
+          404:
+            statusCode: 404
+          422:
+            statusCode: 422
+          429:
+            statusCode: 429
+components:
+  parameters:
+    AuthorisationHeaderParam:
+      in: header
+      name: Authorization
+      description: The client must send this token in the Authorization header when making requests to protected resources.
+      required: true
+      schema:
+        type: string
+    ContentTypeHeaderParam:
+      in: header
+      name: Content-Type
+      description: Indicates the type of data sent.
+      required: true
+      schema:
+        type: string
+        example: multipart/form-data
+    AcceptLanguageHeaderParam:
+      in: header
+      name: Accept-Language
+      description: Indicates the preferred locale variant.
+      required: false
+      schema:
+        type: string
+        example: en
+    CurrencyCodeParam:
+      name: currencyCode
+      in: path
+      description: The 3 character currency code in ISO 4217 format.
+      required: true
+      schema:
+        type: string
+        example: EUR
+        pattern: "[A-Z]{3}"
+    CurrencyCodeOptionalQueryParam:
+      name: currencyCode
+      in: query
+      description: The 3 character currency code in ISO 4217 format.
+      required: false
+      schema:
+        type: string
+        example: EUR
+        pattern: "[A-Z]{3}"
+  responses:
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiNotFoundError"
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiForbiddenError"
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiUnauthorizedError"
+    UnprocessableEntity:
+      description: Unprocessable Entity.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiErrorWithMessages"
+    TooManyRequests:
+      description: Too many requests.
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ApiTooManyRequestsError"
+  securitySchemes:
+    Bearer:
+      type: oauth2
+      description: Retrieve/refresh a short-lived access token using a long-lived partner token.
+      flows:
+        authorizationCode:
+          authorizationUrl: None, keys are assigned manually
+          tokenUrl: https://www.currencyfair.com/oauth
+          refreshUrl: https://www.currencyfair.com/oauth
+          scopes:
+            xsapi: Authorized access
+  schemas:
+    ApiUnprocessableEntityError:
+      type: object
+      description: The [RFC 7807](https://tools.ietf.org/html/rfc7807) error message.
+      properties:
+        type:
+          type: string
+          example: "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html"
+        title:
+          type: string
+          example: Unprocessable Entity
+        status:
+          type: integer
+          description: HTTP status code.
+          example: 422
+        detail:
+          type: string
+          description: Description of the error.
+          example: Unable to process entity
+        variables:
+          type: object
+          description: Optional object containing replacement values for errors with variables.
+          additionalProperties: true
+      required:
+        - type
+        - title
+        - status
+        - detail
+    ApiNotFoundError:
+      type: object
+      description: The [RFC 7807](https://tools.ietf.org/html/rfc7807) error message.
+      properties:
+        type:
+          type: string
+          example: "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html"
+        title:
+          type: string
+          example: Not Found
+        status:
+          type: integer
+          description: HTTP status code.
+          example: 404
+        detail:
+          type: string
+          description: Description of the error.
+          example: Entity not found
+        variables:
+          type: object
+          description: Optional object containing replacement values for errors with variables.
+          additionalProperties: true
+      required:
+        - type
+        - title
+        - status
+        - detail
+    ApiForbiddenError:
+      type: object
+      description: The [RFC 7807](https://tools.ietf.org/html/rfc7807) error message.
+      properties:
+        type:
+          type: string
+          example: "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html"
+        title:
+          type: string
+          example: Forbidden
+        status:
+          type: integer
+          description: HTTP status code.
+          example: 403
+        detail:
+          type: string
+          description: Description of the error.
+          example: This action is forbidden
+        variables:
+          type: object
+          description: Optional object containing replacement values for errors with variables.
+          additionalProperties: true
+      required:
+        - type
+        - title
+        - status
+        - detail
+    ApiUnauthorizedError:
+      type: object
+      description: The [RFC 7807](https://tools.ietf.org/html/rfc7807) error message.
+      properties:
+        type:
+          type: string
+          example: "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html"
+        title:
+          type: string
+          example: Unauthorized
+        status:
+          type: integer
+          description: HTTP status code.
+          example: 401
+        detail:
+          type: string
+          description: Description of the error.
+          example: Invalid or expired token
+        variables:
+          type: object
+          description: Optional object containing replacement values for errors with variables.
+          additionalProperties: true
+      required:
+        - type
+        - title
+        - status
+        - detail
+    ApiTooManyRequestsError:
+      type: object
+      description: The [RFC 7807](https://tools.ietf.org/html/rfc7807) error message.
+      properties:
+        type:
+          type: string
+          example: "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html"
+        title:
+          type: string
+          example: Too Many Requests
+        status:
+          type: integer
+          description: HTTP status code.
+          example: 429
+        detail:
+          type: string
+          description: Description of the error.
+          example: Too Many Requests
+        variables:
+          type: object
+          description: Optional object containing replacement values for errors with variables.
+          additionalProperties: true
+      required:
+        - type
+        - title
+        - status
+        - detail
+    ApiErrorWithFailureMessages:
+      allOf:
+        - $ref: "#/components/schemas/ApiUnprocessableEntityError"
+        - type: object
+          description: The [RFC 7807](https://tools.ietf.org/html/rfc7807) error message with additional failure messages.
+          properties:
+            failure_messages:
+              type: object
+              description: "Array holding failure message (messageId => message)."
+              additionalProperties:
+                type: string
+    ApiErrorWithValidationMessages:
+      allOf:
+        - $ref: "#/components/schemas/ApiUnprocessableEntityError"
+        - type: object
+          description: The [RFC 7807](https://tools.ietf.org/html/rfc7807) error message with additional validation messages
+          properties:
+            validation_messages:
+              type: object
+              description: Object holding validation messages.
+    ApiErrorWithMessages:
+      allOf:
+        - type: object
+          description: The [RFC 7807](https://tools.ietf.org/html/rfc7807) error message with additional validation or failure messages
+        - $ref: "#/components/schemas/ApiErrorWithFailureMessages"
+        - $ref: "#/components/schemas/ApiErrorWithValidationMessages"
+    CountriesEntity:
+      type: object
+      properties:
+        id:
+          type: number
+          description: |
+            The ID of the Country entity. See [getCountries](#operation/getCountries).
+          example: 15
+        countryCode:
+          type: string
+          description: Two-letter ISO 3166 country code.
+          example: IE
+        name:
+          type: string
+          description: Country name.
+          example: Ireland
+        dialCode:
+          type: string
+          description: Phone dial code.
+          example: "353"
+        allowsRegistration:
+          type: boolean
+          description: Defines if customers residing in the country are allowed to register.
+        registrationMessage:
+          type: string
+          nullable: true
+          deprecated: true
+          description: Optional message to show if not allowed to register.
+        _embedded:
+          type: object
+          properties:
+            defaultCurrency:
+              $ref: "#/components/schemas/CurrenciesEntity"
+          required:
+            - defaultCurrency
+      required:
+        - id
+        - countryCode
+        - name
+        - dialCode
+        - allowsRegistration
+        - registrationMessage
+    CountriesCollection:
+      type: object
+      properties:
+        _embedded:
+          type: object
+          properties:
+            countries:
+              type: array
+              items:
+                $ref: "#/components/schemas/CountriesEntity"
+          required:
+            - countries
+        total_items:
+          type: integer
+      required:
+        - _embedded
+        - total_items
+    CurrenciesEntity:
+      type: object
+      properties:
+        currencyCode:
+          $ref: "#/components/schemas/CurrencyCode"
+        description:
+          type: string
+          description: Currency name.
+          example: Euro
+        minimumSellAmount:
+          type: number
+          format: float
+          description: Minimum amount that can be sold when exchanging.
+          example: 10
+        minDeposit:
+          type: number
+          format: float
+          description: Minimum amount that can be deposited.
+          example: 10
+        maxDeposit:
+          type: number
+          format: float
+          description: Maximum amount that can be deposited.
+          example: 100000
+        roundingScale:
+          type: number
+          description: Number of decimal places to round amounts in this currency.
+            Rounding method is "half up".
+          example: 2
+        marketplaceEnabled:
+          type: boolean
+          description: Is marketplace trading allowed for this currency.
+          example: true
+        aqtOnly:
+          type: boolean
+          description: Is this an Automatic Quick Trade (aka. Send Money) only currency.
+          example: false
+        buyOnly:
+          type: boolean
+          description: Is this a buy only currency. Cannot be sold on the Exchange.
+          example: false
+        acceptDeposits:
+          type: boolean
+          description: Do we accept deposits in this currency.
+          example: true
+        targetCurrencies:
+          description: A list of currencies which this currency can be exchanged for.
+          type: array
+          items:
+            $ref: "#/components/schemas/CurrenciesEntitySimplified"
+      required:
+        - currencyCode
+        - description
+        - minimumSellAmount
+        - roundingScale
+        - minDeposit
+        - maxDeposit
+        - marketplaceEnabled
+        - aqtOnly
+        - buyOnly
+        - acceptDeposits
+        - targetCurrencies
+    CurrenciesEntitySimplified:
+      type: object
+      properties:
+        currencyCode:
+          $ref: "#/components/schemas/CurrencyCode"
+      required:
+        - currencyCode
+    CurrenciesCollection:
+      type: object
+      properties:
+        _embedded:
+          type: object
+          properties:
+            currencies:
+              type: array
+              items:
+                $ref: "#/components/schemas/CurrenciesEntity"
+          required:
+            - currencies
+        total_items:
+          type: integer
+      required:
+        - _embedded
+        - total_items
+    ComparisonQuotesEntity:
+      type: object
+      properties:
+        currencyFrom:
+          $ref: "#/components/schemas/CurrencyFrom"
+        currencyTo:
+          $ref: "#/components/schemas/CurrencyTo"
+        type:
+          type: string
+          example: SELL
+          enum:
+            - BUY
+            - SELL
+        amountInfo:
+          $ref: "#/components/schemas/AmountInfoObject"
+        savingsInfo:
+          $ref: "#/components/schemas/AmountInfoObject"
+        currencyFair:
+          $ref: "#/components/schemas/CurrencyFairQuoteObject"
+        bank:
+          $ref: "#/components/schemas/BankQuoteObject"
+        totalSavings:
+          $ref: "#/components/schemas/TotalSavingsObject"
+        smartRates:
+          $ref: "#/components/schemas/ComparisonQuoteSmartRateEntity"
+        _embedded:
+          $ref: "#/components/schemas/ComparisonQuoteEmbedded"
+      required:
+        - currencyFrom
+        - currencyTo
+        - type
+        - amountInfo
+        - savingsInfo
+        - currencyFair
+        - bank
+        - totalSavings
+        - smartRates
+        - _embedded
+    ComparisonQuoteSmartRateEntity:
+      type: object
+      properties:
+        isFTTSmartRate:
+          type: boolean
+          example: false
+          description: Indicates whether a promotional rate has been applied.
+      required:
+        - isFTTSmartRate
+    ComparisonQuoteEmbedded:
+      type: object
+      properties:
+        paymentMethods:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaymentMethodEntity"
+      required:
+        - paymentMethods
+    CurrencyFairQuoteObject:
+      type: object
+      properties:
+        transferFee:
+          type: number
+          format: float
+          example: 10
+        rateInfo:
+          $ref: "#/components/schemas/RateInfoObject"
+        inverseRateInfo:
+          $ref: "#/components/schemas/RateInfoObject"
+        amountInfo:
+          $ref: "#/components/schemas/AmountInfoObject"
+      required:
+        - transferFee
+        - rateInfo
+        - inverseRateInfo
+        - amountInfo
+    BankQuoteObject:
+      type: object
+      required:
+        - transferFee
+        - rateInfo
+        - inverseRateInfo
+        - amountInfo
+      properties:
+        transferFee:
+          type: number
+          format: float
+          description: The fee charged by a bank for a transfer.
+          example: 25.5
+        rateInfo:
+          $ref: "#/components/schemas/RateInfoObject"
+        inverseRateInfo:
+          $ref: "#/components/schemas/RateInfoObject"
+        amountInfo:
+          $ref: "#/components/schemas/AmountInfoObject"
+    TotalSavingsObject:
+      type: object
+      properties:
+        currencyCode:
+          $ref: "#/components/schemas/CurrencyCode"
+        currencySymbol:
+          $ref: "#/components/schemas/CurrencySymbol"
+        savingsRate:
+          type: number
+          format: float
+          description: The rate of savings.
+          example: 1.5
+        amountInfo:
+          $ref: "#/components/schemas/AmountInfoObject"
+      required:
+        - currencyCode
+        - currencySymbol
+        - savingsRate
+        - amountInfo
+    IdParam:
+      type: integer
+      example: 15
+      description: The ID of the entity.
+    AmountInfoObject:
+      type: object
+      description: Represents an amount. The amount *must* be displayed to end user
+        with the number of decimal places equal to `scale`, as well as rounded using
+        that same `scale`.
+      properties:
+        amount:
+          type: number
+          format: float
+          description: The numeric value of the amount.
+          example: 123.4
+        scale:
+          type: integer
+          description: Rounding scale of the amount.
+          example: 2
+      required:
+        - amount
+        - scale
+    SimpleAmountObject:
+      description: The monetary amount.
+      type: object
+      properties:
+        amount:
+          type: number
+          format: float
+          example: 100.00
+      required:
+        - amount
+    RateInfoObject:
+      type: object
+      properties:
+        rate:
+          type: number
+          format: float
+          description: The monetary rate.
+          example: 10
+        scale:
+          type: number
+          format: int64
+          description: The rounding scale of the amount.
+          example: 2
+      required:
+        - rate
+        - scale
+    ComparisonQuotesBodyPayload:
+      type: object
+      properties:
+        currencyFrom:
+          $ref: "#/components/schemas/CurrencyFrom"
+        currencyTo:
+          $ref: "#/components/schemas/CurrencyTo"
+        type:
+          $ref: "#/components/schemas/QuoteType"
+        amountInfo:
+          $ref: "#/components/schemas/SimpleAmountObject"
+        ignoreFee:
+          description: If the CurrencyFair fee should be ignored in calculations.
+          type: boolean
+          example: false
+    CurrencySymbol:
+      type: string
+      description: The currency symbol.
+      example: "€"
+    CurrencyCode:
+      type: string
+      description: The 3 character currency code ISO 4217 format.
+      example: EUR
+      pattern: "[A-Z]{3}"
+    CurrencyFrom:
+      type: string
+      description: The SELL currency in ISO 4217 format.
+      example: EUR
+      default: EUR
+      pattern: "[A-Z]{3}"
+    CurrencyTo:
+      type: string
+      description: The BUY currency in ISO 4217 format.
+      example: GBP
+      default: GBP
+      pattern: "[A-Z]{3}"
+    FieldName:
+      type: string
+      description: The name of the field.
+      example: firstname
+    QuoteType:
+      type: string
+      example: SELL
+      description: The type of quote.
+      enum:
+        - BUY
+        - SELL
+    OauthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+        expires_in:
+          type: integer
+        token_type:
+          type: string
+        scope:
+          type: string
+      required:
+        - access_token
+        - expires_in
+        - token_type
+        - scope
+    CurrencyfairAccountsEntity:
+      type: object
+      properties:
+        accountId:
+          type: integer
+          description: The ID of the account
+          example: 123
+        accountName:
+          type: string
+          description: The name of the account
+          example: John Doe's Bank Account
+        bankName:
+          type: string
+          description: The name of the banking institution
+          example: Allied Irish Banks Ltd.
+        bankAddress:
+          type: array
+          items:
+            type: string
+          example:
+            - Group Headquarters, Bank centre, Dublin 4 Ireland
+        accountInformation:
+          type: array
+          items:
+            $ref: "#/components/schemas/AccountInformation"
+        message:
+          type: string
+          description: 'A message associated with the bank account '
+          deprecated: true
+        reference:
+          type: string
+          description: The reference used to identify the bank account
+          example: ABC321
+        _embedded:
+          $ref: "#/components/schemas/CurrencyfairAccountsEntityEmbedded"
+      required:
+        - accountId
+        - accountName
+        - bankName
+        - bankAddress
+        - accountInformation
+        - message
+        - reference
+        - _embedded
+    CurrencyfairAccountsEntityEmbedded:
+      type: object
+      properties:
+        currency:
+          $ref: "#/components/schemas/CurrenciesEntity"
+        fields:
+          type: array
+          items:
+            $ref: "#/components/schemas/Field"
+      required:
+        - currency
+        - fields
+    AccountInformation:
+      type: object
+      description: Contains miscellaneous information related to a bank account.
+      properties:
+        name:
+          type: string
+          description: The name associated with the information.
+          example: bankName
+        label:
+          type: string
+          description: The label associated with the information.
+          example: Bank Name
+        value:
+          type: string
+          description: The value of the information.
+          example: AIB Bank
+      required:
+        - name
+        - label
+        - value
+    EstimatedArrivalDateObject:
+      type: object
+      description: Contains information about the estimated arrival time of arrival for the action.
+      required:
+        - intervalText
+        - day
+        - ordinal
+        - month
+        - monthText
+        - year
+      properties:
+        intervalText:
+          type: string
+          description: Time period in which the money should arrive to destination,
+            in text.
+          example: Today
+        day:
+          type: integer
+          description: The day on which the money should arrive at the destination.
+          example: 14
+        ordinal:
+          type: string
+          description: Ordinal suffix for the day number.
+          example: th
+        month:
+          type: integer
+          description: The numeric month.
+          example: 4
+        monthText:
+          type: string
+          description: The textual month.
+          example: April
+        year:
+          type: integer
+          description: The numeric year.
+          example: 2025
+    Field:
+      type: object
+      properties:
+        name:
+          "$ref": "#/components/schemas/FieldName"
+        type:
+          type: string
+          description: |
+            The type of the field.
+
+            - ```text```: A text field
+            - ```textarea```: A textarea field
+            - ```list```: A list field
+            - ```checkbox```: A checkbox field
+            - ```image```: An image field to indicate an image is to be displayed
+            - ```date```: An date field
+            - ```file```: A file upload field
+            - ```uploadedFile```: Used as a banner indicating that the file is already uploaded
+            - ```awaitingFile```: Used as a banner indicating that a previous file is required to be uploaded
+            - ```captcha```: A captcha field
+            - ```message```: A message field
+            - ```multiSelect```: A multiSelect field
+          example: text
+          enum:
+            - text
+            - textarea
+            - list
+            - checkbox
+            - image
+            - date
+            - file
+            - uploadedFile
+            - awaitingFile
+            - captcha
+            - message
+            - multiSelect
+        label:
+          type: string
+          description: The label for the field.
+          example: Address Line 1
+        required:
+          type: boolean
+          description: Indicates if this field is required data.
+          example: true
+        tooltip:
+          type: string
+          description: Text for a tool tip related to the field.
+        validators:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldValidator"
+        filters:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldFilter"
+        meta:
+          type: array
+          description: Holds additional information associated with the given input field.
+          items:
+            $ref: "#/components/schemas/FieldMeta"
+      required:
+        - name
+        - type
+    FieldValidator:
+      type: object
+      properties:
+        validator:
+          type: string
+          description: A validator to apply on the field value.
+          example: minMax
+          enum:
+            - minLength
+            - maxLength
+            - minMax
+            - digits
+            - alphanumeric
+            - regex
+            - notEmpty
+        rules:
+          type: object
+          properties:
+            rules:
+              type: object
+              description: 'Contains simple validation rules related to the validator. Currently used:
+                `minLength, maxLength, regexvalue, jsRegex, pcreRegex`'
+              additionalProperties:
+                type: string
+            optional:
+              type: boolean
+              description: Indicates if the validator is optional or must be validated.
+              example: false
+        message:
+          type: string
+          description: The message to display if the validator fails
+          example: The value that you've provided is not the correct length. Please enter the correct length and retry.
+      required:
+        - validator
+    FieldFilter:
+      type: object
+      properties:
+        filter:
+          type: string
+          description: |
+            The name of the filter to apply to the data in the field
+
+            - ```trim```: Indicates white space should be removed from the beginning and the end of the input
+            - ```stripWhitespace```: Indicates white space should be removed from the input
+            - ```digits```: Indicates input should be cast to an integer
+            - ```boolean```: Indicates input should be cast to a boolean
+          example: trim
+          enum:
+            - trim
+            - stripWhitespace
+            - digits
+            - boolean
+    FieldMeta:
+      type: object
+      properties:
+        type:
+          type: string
+          description: |
+            Holds information about possible "meta" field types for a field.
+
+            - ```url```: Indicates that the "label" is piece of text to be wrapped with link in "value"
+            - ```item```: For listing items in select lists (value => label)
+            - ```format```: Indicates that the "value" is the format of text input ('tel', 'datetime', 'number', etc.)
+            - ```attribute```: Indicates input field attribute to be set. This should be device agnostic but based on HTML5 input tag attributes. "value" holds the name of attribute, "label" holds the value to be set.
+            - ```additionalFields```: Indicates that the field's value is used as a trigger to show some more input fields. For example, we show additional input boxes when a customer selects a country from a dropdown list and we separate sets of fields per country.
+            - ```modal```: Indicates that the "label" is piece of text to be wrapped with a link showing modal with content from "value"
+            - ```hidden```: Indicates that the field should be hidden
+            - ```placeholder```: The placeholder attribute for field
+            - ```image```: Various images to be used by custom field. 'label' holds identifier defined by specific design. The 'label' holds link to the image endpoint in API.
+            - ```button```: Indicates a button for field
+            - ```id```: Element ID for a field
+          example: url
+          enum:
+            - url
+            - item
+            - format
+            - attribute
+            - additionalFields
+            - modal
+            - hidden
+            - placeholder
+            - image
+            - button
+            - id
+        value:
+          type: string
+          description: The value to use in the context of the meta type.
+        label:
+          type: string
+          description: The label to use in the context of the meta type.
+      required:
+        - type
+    PaymentMethodEntity:
+      type: object
+      description: The Payment Method Entity.
+      properties:
+        code:
+          type: string
+          enum:
+            - bpay
+            - account
+            - payNow
+            - paymentCard
+        label:
+          type: string
+          description: The name of the payment method.
+          example: Bpay
+        group:
+          type: object
+          description: The group in which the payment method belongs.
+          properties:
+            label:
+              type: string
+              description: The label associated with the payment method group.
+              example: Zero cost deposit
+            name:
+              type: string
+              example: noCost
+              description: The name of the payment method group.
+          required:
+            - label
+            - name
+        minimumAmount:
+          type: number
+          format: float
+          description: The minimum payment amount.
+          example: 1.00
+        maximumAmount:
+          type: number
+          format: float
+          description: The maximum payment amount.
+          example: 10000000.00
+        available:
+          type: boolean
+          description: Whether the payment method is currently available.
+          example: true
+        depositFee:
+          type: object
+          properties:
+            type:
+              type: string
+              description: The type of deposit fee.
+              enum:
+                - percentage
+                - amount
+            value:
+              type: number
+              format: float
+              description: The numeric fee value.
+              example: 100.15
+            scale:
+              type: number
+              format: integer
+              description: Rounding scale of the deposit fee.
+              example: 2
+        statusMessage:
+          type: string
+          description: The status message associated with a payment method.
+          example: This deposit method is currently unavailable.
+        _embedded:
+          type: object
+          properties:
+            transactionTime:
+              type: object
+              required:
+                - estimatedArrivalDate
+              properties:
+                estimatedArrivalDate:
+                  $ref: "#/components/schemas/EstimatedArrivalDateObject"
+                _embedded:
+                  type: object
+                  required:
+                    - currency
+                  properties:
+                    currency:
+                      $ref: "#/components/schemas/CurrenciesEntity"
+            account:
+              $ref: "#/components/schemas/CurrencyfairAccountsEntity"
+            bpay:
+              $ref: "#/components/schemas/BpayEntity"
+            paynow:
+              $ref: "#/components/schemas/CurrencyfairAccountsEntity"
+      required:
+        - code
+        - label
+        - group
+        - minimumAmount
+        - maximumAmount
+        - available
+        - depositFee
+        - statusMessage
+        - _embedded
+    BpayEntity:
+      type: object
+      properties:
+        billerCode:
+          type: number
+          description: The Bpay biller code. Biller Codes are required to process
+            BPay transaction and are used to identify where the money is being sent.
+          example: 1234
+        reference:
+          type: number
+          description: The reference, or CRN, is unique number used to identify a
+            Bpay account
+          example: 12341234
+      required:
+        - billerCode
+        - reference
+  examples:
+    NotFound:
+      description: Example of not found entity.
+      value:
+        type: "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html"
+        title: Not Found
+        status: 404
+        detail: Country not found
+    FailureMessages:
+      description: Example of an endpoint returning failure messages
+      value:
+        failure_messages:
+          20: Invalid currency code provided
+        type: "http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html"
+        title: Unprocessable Entity
+        status: 422
+        detail: ''
+    OauthRequest:
+      summary: Example OAuth request
+      value:
+        grant_type: auth_token
+        client_id: xsapi
+        auth_token: Wkmz8QBBP0Vwkp0wFuw3BUmoAZzeIORm9JpK1
