@@ -11,30 +11,22 @@ info:
   description: |
     # Introduction
 
-    The CurrencyFair eXternal Services API is REST-ful API that allows approved API users to perform various
-    operations on their CurrencyFair wallet.
+    The CurrencyFair API is REST-ful API that allows approved API users to perform various operations on their CurrencyFair wallet.
 
     In order to use the API you will need to have a CurrencyFair account. You can [sign up here](https://app.currencyfair.com/register/personal#business).
 
-    It is designed to be used by server-side clients, to allow our business and institutional clients to build
+    It is designed to be used by server-side clients, to allow our business and institutional clients to build 
     their own integrations with our system.
 
-    The production API server is https://xsapi.currencyfair.com
-
-    The sandbox servers are assigned to users when they register as an API partner.
+    The production API server is https://api.currencyfair.com
 
     The following headers can be attached to HTTPS calls to our API:
-      - `x-api-key: <secret provided by CurrencyFair>` - must be sent in every request, grants access to the API (authentication is performed separately).
       - `Authentication: Bearer <api_token>` - must be set to authenticate the call. Read more in the [Authentication](#section/Authentication) section.
       - `Content-Type: application/json` - must be set on POST/PUT/PATCH calls when a JSON body payload is sent.
       - `Accept-Language: <two_letter_language_code>` - to set the language. Defaults to `en` if not provided. Currently supported languages: `en`, `fr`, `de`.
 
     In order to use our API you need to first signup as our API partner. Please contact our customer service
     to arrange this.
-
-    Once you are our API partner, a new Sub User will be created under your company account. That Sub User will
-    have its own long-lived Authorization Code that allows it to authenticate using the
-    [authentication endpoint](#tag/Authentication).
 
     <SecurityDefinitions />
 
@@ -168,8 +160,6 @@ info:
 
     ## Field definition
     <SchemaDefinition schemaRef="#/components/schemas/Field" />
-security:
-  - api_key: []
 x-amazon-apigateway-api-key-source: HEADER
 x-amazon-apigateway-request-validators:
   params-only:
@@ -300,10 +290,7 @@ paths:
       tags:
         - Authentication
       operationId: oauth
-      security:
-        - api_key: []
       parameters:
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/ContentTypeHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       requestBody:
@@ -357,7 +344,6 @@ paths:
         timeoutInMillis: 29000
         type: "http"
         requestParameters:
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Content-Type: "method.request.header.Content-Type"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
@@ -377,12 +363,9 @@ paths:
       description: Retrieves basic information about the logged in user.
       operationId: getWhoAmI
       security:
-        - api_key: []
-          Bearer: []  # Note there is no dash, this indicates AND
-      # Authorization Parameter is required for method request mapping to integration request.
+        - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - User Information
@@ -418,7 +401,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -442,11 +424,9 @@ paths:
         capabilities.
       operationId: getCountries
       security:
-        - api_key: []
-          Bearer: []
+        - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/CurrencyCodeOptionalQueryParam"
         - name: account
@@ -494,7 +474,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -519,11 +498,9 @@ paths:
       description: Retrieves a Country.
       operationId: getCountry
       security:
-        - api_key: []
-          Bearer: []
+        - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - name: id
           in: path
@@ -574,7 +551,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -601,11 +577,9 @@ paths:
       description: Retrieves a collection of Currencies.
       operationId: getCurrencies
       security:
-        - api_key: []
-          Bearer: []
+        - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - name: include_disabled
           in: query
@@ -670,7 +644,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -697,11 +670,9 @@ paths:
       description: Retrieves a Currency.
       operationId: getCurrencyByCurrencyCode
       security:
-        - api_key: []
-          Bearer: []
+        - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/CurrencyCodeParam"
       tags:
@@ -740,7 +711,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -768,11 +738,9 @@ paths:
 
         An example usage of this endpoint would be displaying a table comparing CurrencyFair's rates with a traditional bank's rates.
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Quote and Exchange Money
@@ -814,7 +782,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -839,13 +806,11 @@ paths:
       description: Retrieves a User associated with a provided User ID.
       operationId: getUser
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - User Information
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       responses:
@@ -877,7 +842,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.path.userId: "method.request.path.userId"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
@@ -903,13 +867,11 @@ paths:
         information such available funds, pending deposits and open orders.
       operationId: getUsersSummaries
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - User Information
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       responses:
@@ -944,7 +906,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -968,13 +929,11 @@ paths:
         pending deposits and open orders for a currency.
       operationId: getUsersSummary
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - User Information
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/CurrencyCodeParam"
@@ -1012,7 +971,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1037,11 +995,9 @@ paths:
       description: Returns a `BUY` or `SELL` quote for a transfer between two provided currencies
       operationId: createQuickTradeQuote
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Quote and Exchange Money
@@ -1082,7 +1038,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1112,11 +1067,9 @@ paths:
         Please note that rates may fluctuate between receiving a quote and placing an order.
       operationId: createQuickTradeOrder
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Quote and Exchange Money
@@ -1157,7 +1110,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1182,13 +1134,11 @@ paths:
       description: Retrieve a collection of Orders for a user.
       operationId: getUsersOrders
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Marketplace
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/PageParam"
@@ -1263,7 +1213,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1290,13 +1239,11 @@ paths:
       description: Retrieves an Order for a user.
       operationId: getUsersOrder
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Marketplace
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/OrderIdParam"
@@ -1329,7 +1276,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1353,13 +1299,11 @@ paths:
       description: Updates an open Order rate for a user.
       operationId: patchUsersOrder
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Marketplace
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/OrderIdParam"
@@ -1400,7 +1344,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1426,13 +1369,11 @@ paths:
       description: Cancels an Open Order for a user.
       operationId: deleteUsersOrder
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Marketplace
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/OrderIdParam"
@@ -1471,7 +1412,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1499,13 +1439,11 @@ paths:
       description: Retrieves an Order's History for a user.
       operationId: getUsersOrderHistory
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Marketplace
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/OrderIdParam"
@@ -1538,7 +1476,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1564,11 +1501,9 @@ paths:
         Returns currency exchange rates for all exchange markets.
       operationId: getMarketplaces
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Marketplace
@@ -1604,7 +1539,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1625,13 +1559,11 @@ paths:
       description: Retrieves marketplace information for a provided currency pair.
       operationId: getMarketplace
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Marketplace
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - name: currencyFrom
           in: path
@@ -1672,7 +1604,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1698,11 +1629,9 @@ paths:
         pair, trade-type and rate.
       operationId: createMarketplaceOrder
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Marketplace
@@ -1743,7 +1672,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1768,13 +1696,11 @@ paths:
       description: Creates a Deposit for a user.
       operationId: createUsersDeposit
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Depositing
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       requestBody:
@@ -1826,7 +1752,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1849,13 +1774,11 @@ paths:
       description: Retrieves a collection of Deposits for a user.
       operationId: getUsersDeposits
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Depositing
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/PageParam"
@@ -1890,7 +1813,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1916,13 +1838,11 @@ paths:
       description: Partially update a Deposit for a user.
       operationId: patchUsersDeposit
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Depositing
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - name: id
@@ -1969,7 +1889,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -1995,13 +1914,11 @@ paths:
       description: Retrieves a Deposit for a user.
       operationId: getUsersDeposit
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Depositing
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - name: id
@@ -2040,7 +1957,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2065,11 +1981,9 @@ paths:
       description: Retrieves a collection of CurrencyFair Bank Accounts.
       operationId: getCurrencyfairAccounts
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Depositing
@@ -2105,7 +2019,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2126,13 +2039,11 @@ paths:
       description: Retrieves a single CurrencyFair Bank Account by currency.
       operationId: getCurrencyfairAccount
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Depositing
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/CurrencyCodeParam"
       responses:
@@ -2169,7 +2080,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2194,13 +2104,11 @@ paths:
         a Bank Account.
       operationId: createTransfer
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Transfer Out
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       requestBody:
@@ -2250,7 +2158,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2275,13 +2182,11 @@ paths:
         in descending order.
       operationId: getTransfers
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Transfer Out
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/PageParam"
@@ -2321,7 +2226,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2345,13 +2249,11 @@ paths:
       description: Retrieves a single Transfer Out for a user
       operationId: getTransfer
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Transfer Out
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/TransferOutIdParam"
@@ -2399,7 +2301,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2425,13 +2326,11 @@ paths:
         if the logged in customer has the capability to approve transfers.
       operationId: patchTransfer
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Transfer Out
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/TransferOutIdParam"
@@ -2482,7 +2381,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2505,11 +2403,9 @@ paths:
       description: Retrieves a collection of Transfer Types.
       operationId: getTransferTypes
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Transfer Out
@@ -2545,7 +2441,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2566,11 +2461,9 @@ paths:
       description: Retrieves a collection of Transfer Purposes.
       operationId: getTransferPurposes
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/CurrencyCodeOptionalQueryParam"
       tags:
@@ -2613,7 +2506,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2637,13 +2529,11 @@ paths:
       description: Retrieves a collection of Transfer Fees.
       operationId: getTransferFees
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Transfer Out
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - name: excludeFreeTransfer
           in: query
@@ -2686,7 +2576,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2711,13 +2600,11 @@ paths:
         These are the full details of the individual Free Transfer Rewards for both priority and standard transfers, both available and already used or expired.
       operationId: getUsersRewardsTransfersDetails
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Transfer Out
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       responses:
@@ -2752,7 +2639,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2774,13 +2660,11 @@ paths:
       description: Retrieve a Recipient Bank Account for a user.
       operationId: getUsersAccount
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Recipient Bank Accounts
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/AccountIdParam"
@@ -2815,7 +2699,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2841,13 +2724,11 @@ paths:
       description: Delete a Recipient Bank Account for a user.
       operationId: deleteUsersAccount
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Recipient Bank Accounts
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/AccountIdParam"
@@ -2878,7 +2759,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2907,13 +2787,11 @@ paths:
         Updating a Recipient Bank Account will generate a new `accountId` for the entity.
       operationId: patchAccount
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Recipient Bank Accounts
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/AccountIdParam"
@@ -2952,7 +2830,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -2978,13 +2855,11 @@ paths:
         Validates that a Recipient Bank Account's information is valid for the creation of a transfer or deposit.
       operationId: validateAccount
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Recipient Bank Accounts
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/AccountIdParam"
@@ -3021,7 +2896,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3046,13 +2920,11 @@ paths:
       description: Retrieves a collection of Recipient Bank Accounts for user.
       operationId: getUsersAccounts
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Recipient Bank Accounts
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       responses:
@@ -3082,7 +2954,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3105,13 +2976,11 @@ paths:
         Both call's parameters *must* be identical. Please refer to the [MFA documentation](#section/Multi-Factor-Authentication).
       operationId: createUsersAccount
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Recipient Bank Accounts
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - name: x-cf-mfa-followon-id
@@ -3172,7 +3041,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3201,13 +3069,11 @@ paths:
              all allowed currencies for the CountryId).
       operationId: getCountryAccountConfig
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Recipient Bank Accounts
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/CountryIdParam"
         - $ref: "#/components/parameters/CurrencyQueryParam"
@@ -3244,7 +3110,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3269,11 +3134,9 @@ paths:
       description: Retrieves Bank Details from provided Bank Account information and Country ID. Returns an error response for invalid bank details.
       operationId: bankAccountLookup
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/ContentTypeHeaderParam"
       tags:
@@ -3350,7 +3213,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Content-Type: "method.request.header.Content-Type"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
@@ -3376,11 +3238,9 @@ paths:
       description: Determines if a Beneficiary is a [BullionVault](https://www.bullionvault.com/) account and requires verification.
       operationId: requireBeneficiaryVerification
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Recipient Bank Accounts
@@ -3419,7 +3279,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3440,13 +3299,11 @@ paths:
       description: Creates an Automatic Quick Trade for a user.
       operationId: createUsersAutomaticQuickTrade
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Send Money
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       requestBody:
@@ -3494,7 +3351,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3517,13 +3373,11 @@ paths:
       description: Retrieves a collection of Automatic Quick Trades for a user.
       operationId: getUsersAutomaticQuickTrades
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Send Money
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - name: status
@@ -3587,7 +3441,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3612,13 +3465,11 @@ paths:
       description: Retrieves a collection of Automatic Quick Trade Statuses for a user.
       operationId: getAutomaticQuickTradesStatuses
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Send Money
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - name: filter
           in: query
@@ -3662,7 +3513,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3684,13 +3534,11 @@ paths:
       description: Retrieves an Automatic Quick Trade Status for a user.
       operationId: getAutomaticQuickTradesStatus
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Send Money
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - name: statusId
           in: path
@@ -3734,7 +3582,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3760,13 +3607,11 @@ paths:
       description: Retrieves an Automatic Quick Trade for a user.
       operationId: getUsersAutomaticQuickTrade
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Send Money
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - name: id
@@ -3805,7 +3650,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3830,13 +3674,11 @@ paths:
       description: Retrieves a Deposit Transaction Times entity for a given Currency Code.
       operationId: getDepositTransactionTimes
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Depositing
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/CurrencyCodeParam"
@@ -3874,7 +3716,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3897,13 +3738,11 @@ paths:
       description: Retrieves a Transfer Transaction Time entity for a given Currency Code.
       operationId: getTransferTransactionTimes
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Creation process
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/CurrencyCodeParam"
@@ -3941,7 +3780,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -3966,13 +3804,11 @@ paths:
       description: Retrieves a Combined Transaction Time entity consisting of Deposit and Transfer transaction times.
       operationId: getCombinedTransactionTimes
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Send Money
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - name: fromCurrencyCode
@@ -4032,7 +3868,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4059,11 +3894,9 @@ paths:
       description: Retrieves a collection of Online Banks.
       operationId: getOnlineBanks
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
       tags:
         - Depositing
@@ -4098,7 +3931,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4119,11 +3951,9 @@ paths:
       description: Retrieves an Online Bank.
       operationId: getOnlineBank
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - name: id
           in: path
@@ -4167,7 +3997,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4191,13 +4020,11 @@ paths:
         based on the country of registration
       operationId: getCountryActivationConfigs
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Recipient Bank Accounts
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - name: countryId
           in: path
@@ -4233,7 +4060,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4259,13 +4085,11 @@ paths:
         estimated transaction time.
       operationId: getPaymentMethods
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Depositing
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/CurrencyCodeParam"
@@ -4309,7 +4133,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4333,13 +4156,11 @@ paths:
       description: Retrieves a collection of Payment Methods for a provided currency as well as transaction times relative to a second currency.
       operationId: getPaymentMethodsWithTransferTimes
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Depositing
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/CurrencyCodeParam"
@@ -4390,7 +4211,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4415,13 +4235,11 @@ paths:
       description: Retrieves collection of Transfer Approvers
       operationId: getTransferApprovers
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Transfer Approvals
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/TransferOutIdParam"
@@ -4457,7 +4275,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4480,13 +4297,11 @@ paths:
       description: Sends notifications to Transfer Approvers.
       operationId: notifyTransferApprovers
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Transfer Approvals
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/TransferOutIdParam"
@@ -4538,7 +4353,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4567,13 +4381,11 @@ paths:
         the faster the money will be cleared to the user's wallet.
       operationId: createUsersNamedDepositor
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Named Depositors
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       requestBody:
@@ -4607,7 +4419,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4630,13 +4441,11 @@ paths:
       description: Retrieves a collection of active Named Depositors for a user.
       operationId: getUsersNamedDepositors
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Named Depositors
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       responses:
@@ -4668,7 +4477,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4692,13 +4500,11 @@ paths:
       description: Retrieves Named Depositor Fields required for adding/editing a named depositor.
       operationId: getNamedDepositorFields
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Named Depositors
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
       responses:
@@ -4731,7 +4537,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4753,13 +4558,11 @@ paths:
       description: Update a Named Depositor entity.
       operationId: putUsersNamedDepositor
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Named Depositors
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/NamedDepositorIdParam"
@@ -4796,7 +4599,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4822,13 +4624,11 @@ paths:
       description: Retrieves a Named Depositor entity.
       operationId: getUsersNamedDepositor
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Named Depositors
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/NamedDepositorIdParam"
@@ -4863,7 +4663,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4889,13 +4688,11 @@ paths:
       description: Deletes a Named Depositor entity.
       operationId: deleteNamedDepositor
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - Named Depositors
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/NamedDepositorIdParam"
@@ -4923,7 +4720,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -4950,13 +4746,11 @@ paths:
       description: Retrieves a collection of Wallet Transactions for a user.
       operationId: getWalletTransactions
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - User Information
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/WalletTransactionsContextParam"
@@ -5008,7 +4802,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -5042,13 +4835,11 @@ paths:
       description: Retrieves a Wallet Transaction for a user.
       operationId: getWalletTransaction
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - User Information
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - name: transactionId
@@ -5096,7 +4887,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -5125,13 +4915,11 @@ paths:
       description: Trigger an export of Wallet Transactions collection into a file.
       operationId: exportWalletTransactions
       security:
-        - api_key: []
-          Bearer: []
+         - Bearer: []
       tags:
         - User Information
       parameters:
         - $ref: "#/components/parameters/AuthorisationHeaderParam"
-        - $ref: "#/components/parameters/ApiKeyHeaderParam"
         - $ref: "#/components/parameters/AcceptLanguageHeaderParam"
         - $ref: "#/components/parameters/UserIdParam"
         - $ref: "#/components/parameters/WalletTransactionsFormatParam"
@@ -5178,7 +4966,6 @@ paths:
         type: "http"
         requestParameters:
           integration.request.header.Authorization: "method.request.header.Authorization"
-          integration.request.header.xsapi-gateway-key: "stageVariables.gatewayKey"
           integration.request.header.Accept-Language: "method.request.header.Accept-Language"
           integration.request.header.X-Forwarded-For: "context.identity.sourceIp"
           integration.request.header.User-Agent: "context.identity.userAgent"
@@ -5219,13 +5006,6 @@ components:
       in: header
       name: Authorization
       description: The client must send this token in the Authorization header when making requests to protected resources.
-      required: true
-      schema:
-        type: string
-    ApiKeyHeaderParam:
-      in: header
-      name: x-api-key
-      description: The unique secret API Key which must be sent with every request.
       required: true
       schema:
         type: string
@@ -5507,11 +5287,6 @@ components:
               - termsAndConditionsAccepted
       required: true
   securitySchemes:
-    api_key:
-      type: apiKey
-      description: A unique secret API Key (provided by CurrencyFair in advance) which must be sent with every request.
-      name: x-api-key
-      in: header
     Bearer:
       type: oauth2
       description: Retrieve/refresh a short-lived access token using a long-lived partner token.

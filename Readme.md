@@ -12,4 +12,15 @@ yarn install
 yarn start
 ```
 
-CurrencyFair's latest XSAPI documentation is available here: https://api-reference.currencyfair.com/
+Documentation for a Limited access mode, only reading rates:
+
+```
+npm install
+npm start-rates
+```
+
+or 
+```
+yarn install
+yarn start-rates
+```
