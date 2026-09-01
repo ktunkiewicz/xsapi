@@ -16,7 +16,7 @@ Documentation for a Limited access mode, only reading rates:
 
 ```
 npm install
-npm start-rates
+npm run start-rates
 ```
 
 or 
